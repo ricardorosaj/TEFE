@@ -1,4 +1,7 @@
 import numpy as np
+import pandas as pd
+
+dict_data = {'item a':0, 'item b':0, 'M=3':0, 'M=5':0, 'M=10':0, 'M=100':0, 'item d':0}
 
 def func(x): return 3/2*x**2
 
@@ -26,12 +29,13 @@ def metodo_exclusao_a(N, f):
             if np.abs(valor)<=lambdas[i]*sigma_x:
                 ns[i]+=1
     return ns
-print(f'N para cada lambda item a: {metodo_exclusao_a(N, func)}')
+item_a = metodo_exclusao_a(N, func)
+print(f'N para cada lambda item a: {item_a}')
+dict_data['item a']=item_a
 
 #-----------------------------------------------------------------------------------------
 #ITEM B
 def metodo_exclusao_b(N, f):
-    sigma_x = np.sqrt(3/5)
     xmin = -1
     xmax = 1
     ymax = 3/2
@@ -45,48 +49,21 @@ def metodo_exclusao_b(N, f):
         if y_test <= f(x_cand):
             x[i] = x_cand
             i += 1
-
+    sigma_y = np.std(x)
     ns = [0, 0, 0, 0, 0]
     lambdas = [1, 1.5, 2, 2.5, 3]
     for i in range(len(lambdas)):        
         for valor in x:
-            if np.abs(valor)<=lambdas[i]*sigma_x:
+            if np.abs(valor)<=lambdas[i]*sigma_y:
                 ns[i]+=1
     return ns
-print(f'N para cada lambda item b: {metodo_exclusao_b(N, func)}')
+item_b = metodo_exclusao_b(N, func)
+print(f'N para cada lambda item b: {item_b}')
+dict_data['item b'] = item_b
 
 #-----------------------------------------------------------------------
 #ITEM C
 def metodo_exclusao_c(M, N, f):
-    xmin = -1
-    xmax = 1
-    ymax = 3/2
-    i = 0
-    x = np.zeros(N)
-    while i < N:
-        x_cand_1 = xmin + (xmax - xmin) * np.random.rand()
-        x_cand_2 = xmin + (xmax - xmin) * np.random.rand()
-        x_cand = x_cand_1 + x_cand_2
-        y_test = ymax * np.random.rand()
-        if y_test <= f(x_cand):
-            x[i] = x_cand
-            i += 1
-
-    ns = [0, 0, 0, 0, 0]
-    lambdas = [1, 1.5, 2, 2.5, 3]
-    for i in range(len(lambdas)):        
-        for valor in x:
-            if np.abs(valor)<=lambdas[i]*sigma_x:
-                ns[i]+=1
-    return ns
-print(f'N para cada lambda item c: {metodo_exclusao_b(3, N, func)}')
-print(f'N para cada lambda item c: {metodo_exclusao_b(5, N, func)}')
-print(f'N para cada lambda item c: {metodo_exclusao_b(10, N, func)}')
-print(f'N para cada lambda item c: {metodo_exclusao_b(100, N, func)}')
- #--------------------------------------------------------------------------
-
-#ITEM D
-def metodo_exclusao_d(N, f):
     sigma_x = np.sqrt(3/5)
     xmin = -1
     xmax = 1
@@ -94,17 +71,52 @@ def metodo_exclusao_d(N, f):
     i = 0
     x = np.zeros(N)
     while i < N:
-        x_cand = xmin + (xmax - xmin) * np.random.rand()
+        list_x_cand = []
+        for j in range(M):
+            list_x_cand.append(xmin + (xmax - xmin) * np.random.rand())
+        S = sum(list_x_cand)
         y_test = ymax * np.random.rand()
-        if y_test <= f(x_cand):
-            x[i] = x_cand
+        if y_test <= f(S):
+            x[i] = S
             i += 1
-
+    sigma_S = np.std(x)
     ns = [0, 0, 0, 0, 0]
     lambdas = [1, 1.5, 2, 2.5, 3]
     for i in range(len(lambdas)):        
         for valor in x:
-            if np.abs(valor)<=lambdas[i]*sigma_x:
+            if np.abs(valor)<=lambdas[i]*sigma_S:
                 ns[i]+=1
     return ns
-print(f'N para cada lambda item d: {metodo_exclusao_d(N, func)}')
+
+M3 = metodo_exclusao_c(3, N, func)
+M5 = metodo_exclusao_c(5, N, func)
+M10 = metodo_exclusao_c(10, N, func)
+M100 = metodo_exclusao_c(100, N, func)
+print(f'N para cada lambda item c com M=3: {M3}')
+print(f'N para cada lambda item c com M=5: {M5}')
+print(f'N para cada lambda item c com M=10: {M10}')
+print(f'N para cada lambda item c com M=100: {M100}')
+dict_data['M=3']=M3
+dict_data['M=5']=M5
+dict_data['M=10']=M10
+dict_data['M=100']=M100
+
+ #--------------------------------------------------------------------------
+
+#ITEM D
+def randn_d(N):
+    i = 0
+    x = np.random.randn(N)
+    sigma_z = np.std(x)
+    ns = [0, 0, 0, 0, 0]
+    lambdas = [1, 1.5, 2, 2.5, 3]
+    for i in range(len(lambdas)):        
+        for valor in x:
+            if np.abs(valor)<=lambdas[i]*sigma_z:
+                ns[i]+=1
+    return ns
+item_d = randn_d(N)    
+print(f'N para cada lambda item d: {item_d}')
+dict_data['item d']=item_d
+
+pd.DataFrame.from_dict(dict_data).to_csv('atividade10.csv', index=False, header=False, sep='\t')
